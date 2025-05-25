@@ -1,0 +1,7 @@
+path: ../labeld1 # dataset root dir
+train: images/train # train images (relative to 'path') 128 images
+val: images/val # val images (relative to 'path') 128 images
+
+names:
+  0: Left
+  1: Right
