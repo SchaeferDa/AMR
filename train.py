@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 def main():
     # Model loading
-    model = YOLO('yolov5n.pt')
+    model = YOLO('yolo11n.pt')
 
     results = model.train(data="coco-train.yaml", epochs=1000, imgsz=640)
 
