@@ -1,6 +1,11 @@
-path: ./datasets/labeld1 # dataset root dir
-train: images/train # train images (relative to 'path') 128 images
-val: images/val # val images (relative to 'path') 128 images
+path: ./datasets
+train: 
+  - labeld1/images/train
+  - labeld2/images/train
+
+val:
+  - labeld1/images/val
+  - labeld2/images/val
 
 names:
   0: Left
