@@ -1,3 +1,4 @@
 *.cache
 runs/**
 yolo*.pt
+.venv
