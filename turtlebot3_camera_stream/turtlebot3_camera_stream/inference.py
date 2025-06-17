@@ -12,5 +12,5 @@ class Inference:
         self.model = YOLO(model)
 
     def inference(self, x):
-        results = self.model(x)
-        return results[0].plot()
+        results = self.model.predict(x, conf=0.7, imgsz=(640,480))
+        return results[0]

@@ -183,7 +183,8 @@ def main():
                 np_arr = np.frombuffer(image_subscriber.buffer, np.uint8)
                 image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 image = np.flip(image, 0)
-                image = inference.inference(image)
+                image = inference.inference(image).plot()
+
             
                 if image is not None:
                     cv2.imshow("Compressed Image", image)
