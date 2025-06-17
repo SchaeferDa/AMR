@@ -183,7 +183,11 @@ def main():
                 np_arr = np.frombuffer(image_subscriber.buffer, np.uint8)
                 image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 image = np.flip(image, 0)
-                image = inference.inference(image).plot()
+                result = inference.inference(image)
+                image = result.plot()
+                if(result.boxes):
+                    best_cls = max(result.boxes.numpy(), key=lambda x: x.conf).cls[0]
+                    print(result.names[best_cls]) #TODO hier steuern beim nächsten mal
 
             
                 if image is not None:
