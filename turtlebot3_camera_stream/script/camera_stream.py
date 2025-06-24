@@ -59,14 +59,14 @@ else:
     import termios
     import tty
 
-BURGER_MAX_LIN_VEL = 0.22
-BURGER_MAX_ANG_VEL = 2.84
+BURGER_MAX_LIN_VEL = 0.21
+BURGER_LIN_VEL = 0.1
+BURGER_MAX_ANG_VEL = 2.83
+BURGER_ANG_VEL = 1.4
 
-WAFFLE_MAX_LIN_VEL = 0.26
-WAFFLE_MAX_ANG_VEL = 1.82
+WAFFLE_MAX_LIN_VEL = 0.25
+WAFFLE_MAX_ANG_VEL = 1.81
 
-LIN_VEL_STEP_SIZE = 0.03
-ANG_VEL_STEP_SIZE = 0.1
 
 TURTLEBOT3_MODEL = os.environ['TURTLEBOT3_MODEL']
 
@@ -114,7 +114,7 @@ class TurtleBotController():
         self.target_angular_velocity = 0.0
         self.ROS_DISTRO = os.environ.get('ROS_DISTRO')
         self.qos = QoSProfile(depth=10)
-        self.node = rclpy.create_node('teleop_keyboard')
+        self.node = rclpy.create_node('camera_stream')
         if self.ROS_DISTRO == 'humble':
             self.pub = self.node.create_publisher(Twist, 'cmd_vel', self.qos)
         else:
@@ -124,13 +124,13 @@ class TurtleBotController():
     def turn_left(self):
         print('TURNING LEFT')
         self.target_linear_velocity = get_linear_limit_velocity()
-        self.target_angular_velocity = get_angular_limit_velocity()
+        self.target_angular_velocity = -get_angular_limit_velocity()
         self.publish()
             
     def turn_right(self):
         print('TURNING RIGHT')
         self.target_linear_velocity = get_linear_limit_velocity()
-        self.target_angular_velocity = -get_angular_limit_velocity()
+        self.target_angular_velocity = get_angular_limit_velocity()
         self.publish()
 
     
@@ -169,19 +169,17 @@ class TurtleBotController():
             twist_stamped.twist.angular.z = self.target_angular_velocity
 
             self.pub.publish(twist_stamped)
-    def __del__(self):
-        self.stop()
 
 def get_linear_limit_velocity():
     if TURTLEBOT3_MODEL == 'burger':
-        return  BURGER_MAX_LIN_VEL
+        return  BURGER_LIN_VEL
     else:
         return  WAFFLE_MAX_LIN_VEL
 
 
 def get_angular_limit_velocity():
     if TURTLEBOT3_MODEL == 'burger':
-        return BURGER_MAX_ANG_VEL
+        return BURGER_ANG_VEL
     else:
         return WAFFLE_MAX_ANG_VEL
 
@@ -225,7 +223,8 @@ def main():
                     cv2.imshow("Compressed Image", image)
                     cv2.waitKey(1)
                 else:
-                    print("Image decode failed")        
+                    print("Image decode failed")  
+        turtle_bot_controller.stop()        
 
     thread = Thread(target= show_img)
     thread.start()
@@ -235,7 +234,6 @@ def main():
 
     event.set()
     thread.join()
-
 
 if __name__ == '__main__':
     main()
