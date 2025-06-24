@@ -102,68 +102,94 @@ class CompressedImageSubscriber(Node):
         self.subscription  # prevent unused variable warning
         self.buffer = None
 
-   # def listener_callback(self, msg):
-    #    self.get_logger().info('I heard: "%s"' % msg.data)
     def listener_callback(self, msg: CompressedImage):
         self.buffer = msg.data
         
 
+class TurtleBotController():
+    def __init__(self):
+        print('INIT TB\n')
+        self.status = 0
+        self.target_linear_velocity = 0.0
+        self.target_angular_velocity = 0.0
+        self.ROS_DISTRO = os.environ.get('ROS_DISTRO')
+        self.qos = QoSProfile(depth=10)
+        self.node = rclpy.create_node('teleop_keyboard')
+        if self.ROS_DISTRO == 'humble':
+            self.pub = self.node.create_publisher(Twist, 'cmd_vel', self.qos)
+        else:
+            self.pub = self.node.create_publisher(TwistStamped, 'cmd_vel', self.qos)
+   
+        
+    def turn_left(self):
+        print('TURNING LEFT')
+        self.target_linear_velocity = get_linear_limit_velocity()
+        self.target_angular_velocity = get_angular_limit_velocity()
+        self.publish()
+            
+    def turn_right(self):
+        print('TURNING RIGHT')
+        self.target_linear_velocity = get_linear_limit_velocity()
+        self.target_angular_velocity = -get_angular_limit_velocity()
+        self.publish()
 
+    
+    def drive_straight(self):
+        print('DRIVING STRAIGHT')
+        self.target_linear_velocity = get_linear_limit_velocity()
+        self.target_angular_velocity = 0.0
+        self.publish()
 
-def get_key(settings):
-    if os.name == 'nt':
-        return msvcrt.getch().decode('utf-8')
-    tty.setraw(sys.stdin.fileno())
-    rlist, _, _ = select.select([sys.stdin], [], [], 0.1)
-    if rlist:
-        key = sys.stdin.read(1)
+    def stop(self):
+        print('STOPPING')
+        self.target_linear_velocity = 0.0
+        self.target_angular_velocity = 0.0
+        self.publish()
+
+    def publish(self):
+        if self.ROS_DISTRO == 'humble':
+            twist = Twist()
+            twist.linear.x = self.target_linear_velocity
+            twist.linear.y = 0.0
+            twist.linear.z = 0.0
+            twist.angular.x = 0.0
+            twist.angular.y = 0.0
+            twist.angular.z = self.target_angular_velocity
+            self.pub.publish(twist)
+        else:
+            twist_stamped = TwistStamped()
+            twist_stamped.header.stamp = Clock().now().to_msg()
+            twist_stamped.header.frame_id = ''
+            twist_stamped.twist.linear.x = self.target_linear_velocity
+
+            twist_stamped.twist.angular.x = 0.0
+            twist_stamped.twist.angular.y = 0.0
+            twist_stamped.twist.linear.y = 0.0
+            twist_stamped.twist.linear.z = 0.0
+            twist_stamped.twist.angular.z = self.target_angular_velocity
+
+            self.pub.publish(twist_stamped)
+    def __del__(self):
+        self.stop()
+
+def get_linear_limit_velocity():
+    if TURTLEBOT3_MODEL == 'burger':
+        return  BURGER_MAX_LIN_VEL
     else:
-        key = ''
+        return  WAFFLE_MAX_LIN_VEL
 
-    termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
-    return key
+
+def get_angular_limit_velocity():
+    if TURTLEBOT3_MODEL == 'burger':
+        return BURGER_MAX_ANG_VEL
+    else:
+        return WAFFLE_MAX_ANG_VEL
 
 
 def print_vels(target_linear_velocity, target_angular_velocity):
     print('currently:\tlinear velocity {0}\t angular velocity {1} '.format(
         target_linear_velocity,
         target_angular_velocity))
-
-
-def make_simple_profile(output_vel, input_vel, slop):
-    if input_vel > output_vel:
-        output_vel = min(input_vel, output_vel + slop)
-    elif input_vel < output_vel:
-        output_vel = max(input_vel, output_vel - slop)
-    else:
-        output_vel = input_vel
-
-    return output_vel
-
-
-def constrain(input_vel, low_bound, high_bound):
-    if input_vel < low_bound:
-        input_vel = low_bound
-    elif input_vel > high_bound:
-        input_vel = high_bound
-    else:
-        input_vel = input_vel
-
-    return input_vel
-
-
-def check_linear_limit_velocity(velocity):
-    if TURTLEBOT3_MODEL == 'burger':
-        return constrain(velocity, -BURGER_MAX_LIN_VEL, BURGER_MAX_LIN_VEL)
-    else:
-        return constrain(velocity, -WAFFLE_MAX_LIN_VEL, WAFFLE_MAX_LIN_VEL)
-
-
-def check_angular_limit_velocity(velocity):
-    if TURTLEBOT3_MODEL == 'burger':
-        return constrain(velocity, -BURGER_MAX_ANG_VEL, BURGER_MAX_ANG_VEL)
-    else:
-        return constrain(velocity, -WAFFLE_MAX_ANG_VEL, WAFFLE_MAX_ANG_VEL)
 
 
 def main():
@@ -174,10 +200,11 @@ def main():
     rclpy.init()
     inference = Inference()
     inference.init("./model-v4.pt")
-
     image_subscriber = CompressedImageSubscriber()
     event = Event()
     def show_img():
+        turtle_bot_controller = TurtleBotController()
+        turtle_bot_controller.drive_straight()
         while(not event.is_set()):
             if(image_subscriber.buffer):
                 np_arr = np.frombuffer(image_subscriber.buffer, np.uint8)
@@ -186,9 +213,13 @@ def main():
                 result = inference.inference(image)
                 image = result.plot()
                 if(result.boxes):
-                    best_cls = max(result.boxes.numpy(), key=lambda x: x.conf).cls[0]
-                    print(result.names[best_cls]) #TODO hier steuern beim nächsten mal
-
+                    best_cls = result.names[max(result.boxes.numpy(), key=lambda x: x.conf).cls[0]]
+                    if(best_cls == 'Right'):
+                        turtle_bot_controller.turn_right()
+                    elif(best_cls == 'Left'):
+                        turtle_bot_controller.turn_left()
+                else:
+                    turtle_bot_controller.drive_straight()
             
                 if image is not None:
                     cv2.imshow("Compressed Image", image)
@@ -204,124 +235,7 @@ def main():
 
     event.set()
     thread.join()
-    return
-
-    ROS_DISTRO = os.environ.get('ROS_DISTRO')
-    qos = QoSProfile(depth=10)
-    node = rclpy.create_node('teleop_keyboard')
-    if ROS_DISTRO == 'humble':
-        pub = node.create_publisher(Twist, 'cmd_vel', qos)
-    else:
-        pub = node.create_publisher(TwistStamped, 'cmd_vel', qos)
-
-    status = 0
-    target_linear_velocity = 0.0
-    target_angular_velocity = 0.0
-    control_linear_velocity = 0.0
-    control_angular_velocity = 0.0
-
-    try:
-        print(msg)
-        while (1):
-            key = get_key(settings)
-            if key == 'w':
-                target_linear_velocity =\
-                    check_linear_limit_velocity(target_linear_velocity + LIN_VEL_STEP_SIZE)
-                status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
-            elif key == 's':
-                target_linear_velocity =\
-                    check_linear_limit_velocity(target_linear_velocity - LIN_VEL_STEP_SIZE)
-                status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
-            elif key == 'a':
-                target_angular_velocity =\
-                    check_angular_limit_velocity(target_angular_velocity + ANG_VEL_STEP_SIZE)
-                status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
-            elif key == 'd':
-                target_angular_velocity =\
-                    check_angular_limit_velocity(target_angular_velocity - ANG_VEL_STEP_SIZE)
-                status = status + 1
-                print_vels(target_linear_velocity, target_angular_velocity)
-            elif key == ' ':
-                target_linear_velocity = 0.0
-                control_linear_velocity = 0.0
-                target_angular_velocity = 0.0
-                control_angular_velocity = 0.0
-                print_vels(target_linear_velocity, target_angular_velocity)
-            else:
-                if (key == '\x03'):
-                    break
-
-            if status == 20:
-                print(msg)
-                status = 0
-
-            control_linear_velocity = make_simple_profile(
-                control_linear_velocity,
-                target_linear_velocity,
-                (LIN_VEL_STEP_SIZE / 2.0))
-
-            control_angular_velocity = make_simple_profile(
-                control_angular_velocity,
-                target_angular_velocity,
-                (ANG_VEL_STEP_SIZE / 2.0))
-
-            if ROS_DISTRO == 'humble':
-                twist = Twist()
-                twist.linear.x = control_linear_velocity
-                twist.linear.y = 0.0
-                twist.linear.z = 0.0
-
-                twist.angular.x = 0.0
-                twist.angular.y = 0.0
-                twist.angular.z = control_angular_velocity
-
-                pub.publish(twist)
-            else:
-                twist_stamped = TwistStamped()
-                twist_stamped.header.stamp = Clock().now().to_msg()
-                twist_stamped.header.frame_id = ''
-                twist_stamped.twist.linear.x = control_linear_velocity
-                twist_stamped.twist.linear.y = 0.0
-                twist_stamped.twist.linear.z = 0.0
-
-                twist_stamped.twist.angular.x = 0.0
-                twist_stamped.twist.angular.y = 0.0
-                twist_stamped.twist.angular.z = control_angular_velocity
-
-                pub.publish(twist_stamped)
-
-    except Exception as e:
-        print(e)
-
-    finally:
-        if ROS_DISTRO == 'humble':
-            twist = Twist()
-            twist.linear.x = 0.0
-            twist.linear.y = 0.0
-            twist.linear.z = 0.0
-            twist.angular.x = 0.0
-            twist.angular.y = 0.0
-            twist.angular.z = 0.0
-            pub.publish(twist)
-        else:
-            twist_stamped = TwistStamped()
-            twist_stamped.header.stamp = Clock().now().to_msg()
-            twist_stamped.header.frame_id = ''
-            twist_stamped.twist.linear.x = control_linear_velocity
-            twist_stamped.twist.linear.y = 0.0
-            twist_stamped.twist.linear.z = 0.0
-            twist_stamped.twist.angular.x = 0.0
-            twist_stamped.twist.angular.y = 0.0
-            twist_stamped.twist.angular.z = control_angular_velocity
-            pub.publish(twist_stamped)
-
-        if os.name != 'nt':
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, settings)
 
 
 if __name__ == '__main__':
     main()
-
