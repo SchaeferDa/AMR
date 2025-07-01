@@ -124,13 +124,13 @@ class TurtleBotController():
     def turn_left(self):
         print('TURNING LEFT')
         self.target_linear_velocity = get_linear_limit_velocity()
-        self.target_angular_velocity = -get_angular_limit_velocity()
+        self.target_angular_velocity = get_angular_limit_velocity()
         self.publish()
             
     def turn_right(self):
         print('TURNING RIGHT')
         self.target_linear_velocity = get_linear_limit_velocity()
-        self.target_angular_velocity = get_angular_limit_velocity()
+        self.target_angular_velocity = -get_angular_limit_velocity()
         self.publish()
 
     
@@ -203,21 +203,37 @@ def main():
     def show_img():
         turtle_bot_controller = TurtleBotController()
         turtle_bot_controller.drive_straight()
+        cnt = {}
+        cnt['Left'] = 0
+        cnt['Right'] = 0
+        count = 0
         while(not event.is_set()):
             if(image_subscriber.buffer):
                 np_arr = np.frombuffer(image_subscriber.buffer, np.uint8)
                 image = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
                 image = np.flip(image, 0)
+                image = np.flip(image, 1)
                 result = inference.inference(image)
                 image = result.plot()
+                
+                count += 1
+                approx = 130
+                prob = 0.6
+                turn = approx * prob
                 if(result.boxes):
-                    best_cls = result.names[max(result.boxes.numpy(), key=lambda x: x.conf).cls[0]]
-                    if(best_cls == 'Right'):
-                        turtle_bot_controller.turn_right()
-                    elif(best_cls == 'Left'):
-                        turtle_bot_controller.turn_left()
-                else:
-                    turtle_bot_controller.drive_straight()
+                        best_cls = result.names[max(result.boxes.numpy(), key=lambda x: x.conf).cls[0]]
+                        cnt[best_cls] += 1;
+                                
+                if count >= approx:
+                        if cnt['Right'] > turn:
+                                turtle_bot_controller.turn_right()
+                        elif cnt['Left'] > turn:
+                                turtle_bot_controller.turn_left()
+                        else:
+                                turtle_bot_controller.drive_straight()
+                        count = 0
+                        cnt['Right'] = 0
+                        cnt['Left'] = 0
             
                 if image is not None:
                     cv2.imshow("Compressed Image", image)
