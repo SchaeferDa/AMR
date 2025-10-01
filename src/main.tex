@@ -1,0 +1,115 @@
+%! Author = Daniel Schäfer
+%! Date = 03.11.2023
+
+% Preamble
+\documentclass[12pt, a4paper, ngerman, bibliography=totocnumbered]{article}
+
+% Packages
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+%\usepackage[sfdefault]{roboto}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{graphicx}
+\usepackage{babel}
+\usepackage[hidelinks]{hyperref}
+\usepackage[table]{xcolor}
+\usepackage{float}
+\usepackage[top=1in, bottom=2cm, includefoot]{geometry}
+\usepackage{wrapfig}
+\usepackage{color}
+\usepackage{minted}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{awesomebox}
+\usepackage{csquotes}
+\usepackage{makecell}
+\usepackage{datetime}
+% \usepackage{background}
+\usepackage{nameref}
+\usepackage{tocbibind}
+\usepackage{tocloft}
+\usepackage{amsmath}
+\usepackage{hyphenat}
+\usepackage{siunitx}
+\usepackage{todonotes}
+\usepackage{orcidlink}
+
+\sisetup{per-mode=symbol}
+\sisetup{output-decimal-marker = {,}}
+
+\numberwithin{equation}{section}
+
+\setlength{\cftbeforesecskip}{8pt}
+
+\newdateformat{versiondateformat}{\THEDAY.\THEMONTH}
+
+\renewcommand{\fcolorbox}[4][]{#4}
+\renewcommand{\arraystretch}{1.5}
+
+\graphicspath{{assets/}}
+
+\addto{\captionsngerman}{\renewcommand{\refname}{Literaturverzeichnis}}
+\renewcommand\listoflistingscaption{Quellcodeverzeichnis}
+\renewcommand{\listingscaption}{Codeblock}
+
+\DeclareCaptionFormat{custom}
+{
+    \centering \textbf{\small #1#2}\textit{\small #3}
+}
+
+\DeclareUnicodeCharacter{2014}{\dash}
+
+\captionsetup{format=custom}
+
+\setlength{\tabcolsep}{8pt}
+\renewcommand{\arraystretch}{1.5}
+
+\newcommand{\ohm}{\Omega}
+
+\newcommand{\itemwithdesc}[2]{\textbf{#1}\\ \vspace*{-3mm}\\ \hspace*{5mm} \begin{minipage}{.9\linewidth}#2\end{minipage} \vspace*{2mm}}
+
+\newcommand{\version}{\versiondateformat\today}
+\newcommand{\newPar}{\newline\newline}
+
+\newcommand{\gq}[1]{\glqq{}#1\grqq{}}
+\newcommand{\zB}{z.\,B.}
+\newcommand{\imageref}[1]{\textit{\hyperref[#1]{Abbildung} \ref{#1}}}
+
+% \backgroundsetup{contents={Entwurf-\version}, scale=3, opacity=0.6, color=gray, angle=0, vshift=-131pt}
+
+\title{\projekttitle}
+
+% Keine Einrückung
+\setlength\parindent{0pt}
+
+% Document
+\begin{document}
+    \pagenumbering{gobble}
+    \include{0_titelseite}
+
+    \input{abstract}
+    \newpage
+
+    \tableofcontents
+    \newpage
+    \pagenumbering{arabic}
+
+    \input{1_einleitung}
+    \input{2_konzept}
+    \input{3_grundlagen}
+    \clearpage
+    \input{4_projektvorbereitung}
+    \clearpage
+    \input{5_training}
+    \input{6_implementierung}
+    \input{7_zusammenfassung}
+    \newpage
+    \newpage
+    \bibliography{literatur}
+    % \bibliographystyle{apalike}
+    \bibliographystyle{ieeetran}
+    \newpage
+    \listoffigures
+    %\listoftables
+\end{document}

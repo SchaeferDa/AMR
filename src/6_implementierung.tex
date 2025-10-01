@@ -1,0 +1,38 @@
+\section{Implementierung}
+Nachdem alle vorbereitenden Maßnahmen abgeschlossen und die Systemkomponenten erfolgreich konfiguriert worden sind, begann die eigentliche Implementierungsphase des Projekts. 
+Ziel war es, einen eigenen ROS-2-Node zu entwickeln, der die Bilddaten der Kamera verarbeitet, das trainierte Modell zur Objekterkennung nutzt und den Roboter entsprechend steuert.
+Im Folgenden wird die schrittweise Erstellung und Integration dieses Nodes beschrieben.
+\subsection{Anlegen eines neuen ROS Package}
+Für die Verarbeitung der Bilddaten wurde ein neues ROS-2-Paket in Python erstellt. 
+Dabei kam das Build-System \textit{ament} zum Einsatz, das in ROS 2 als Standard für die Verwaltung und den Aufbau von Paketen dient. 
+Es ermöglicht eine klare Strukturierung des Codes und unterstützt die einfache Integration von Abhängigkeiten und Erweiterungen. 
+Im Rahmen der Paketerstellung wurde ein Node mit dem Namen \textit{camera\_stream} angelegt, der als Grundlage für die spätere Bildverarbeitung dient.
+\newPar
+Nach dem Anlegen des Pakets erfolgte eine erstmalige Kompilierung und Registrierung im ROS-2-Workspace. 
+Durch das Aktualisieren der Entwicklungsumgebung konnte sichergestellt werden, dass das neue Paket korrekt erkannt und ausgeführt werden kann.
+\subsection{Auslesen der Kamera}
+Die Bilddaten werden mittels eines ROS-2-Subscribers empfangen, der das Topic \textit{/image\_raw/compressed} abonniert. 
+Dieses Topic stellt die komprimierten Bilder der Raspberry Pi Kamera über den bereits erwähnte \textit{v4l2\_camera}-Node bereit. 
+Im Callback der Subscription werden die eingehenden Daten in einem Buffer zwischengespeichert.
+\newPar
+Die empfangenen Bilddaten werden mit OpenCV aus dem komprimierten Format decodiert und anschließend gespiegelt, um die Kameraperspektive korrekt abzubilden.
+Dies ist notwendig, da die Kamera um 180° gedreht montiert wurde.
+Die so vorbereiteten Frames werden kontinuierlich für die anschließende Objekterkennung bereitgestellt.
+\subsection{Aufruf des trainierten YOLO-Modells}
+Für die Objekterkennung wird das trainierte YOLO-Modell verwendet, das mithilfe der Ultralytics-Bibliothek in den ROS-Node integriert eingebunden wurde. 
+Nach Initialisierung des Modells und Prüfung der CUDA-Verfügbarkeit zur optionalen GPU-Beschleunigung werden Bilddaten mit einer festen Auflösung von 640x480 Pixeln als Eingabe verarbeitet.
+\newPar
+Die Inferenz des Models wird synchron ausgeführt und liefert eine Liste von erkannten Objekten mit zugehörigen Klassen und Konfidenzwerten. 
+Eine Konfidenzschwelle von 0,7 filtert unsichere Erkennungen aus. 
+Bei mehreren Erkannten Objekten, wird immer das Objekt mit dem höchsten Konfidenzwert ausgewertet.
+Die Erkennungsergebnisse werden für die Steuerlogik genutzt und zur Visualisierung als Overlay in das Bild eingefügt.
+Die Visualisierung des aktuellen Bilds erfolgt mit OpenCV.
+Somit hat man während der Ausführung der Node einen Videostream mit den aktuell Erkannten Objekten als Overlay.
+\subsection{Steuerung des TurtleBot3}
+Die Bewegungssteuerung des TurtleBot3 erfolgt über einen ROS 2 Publisher, der Bewegungsbefehle auf dem Topic \textit{cmd\_vel} publiziert. 
+Zur Umsetzung der Fahrbefehle werden vordefinierte lineare und Winkel\hyp{}Geschwindigkeiten verwendet, die ca. der Hälfte der Maximalgeschwindigkeit des Turtlebot entsprechen. 
+\newPar
+Die Steuerlogik wertet über eine Hysterese, d.\,h. eine Schwellenwertlogik, die Häufigkeit der erkannten Richtungspfeile (\gq{Left} bzw. \gq{Right}) aus mehreren aufeinanderfolgenden Bildern aus. 
+Erst wenn eine Richtung ausreichend oft detektiert wurde, erfolgt die entsprechende Bewegungsanweisung zum Abbiegen. 
+Andernfalls fährt der Roboter geradeaus.
+Durch diese Hysterese wird eine stabile und verwacklungsfreie Steuerung gewährleistet, da einzelne Fehlinterpretationen durch die Aggregation über mehrere Bilder ausgeglichen werden. 

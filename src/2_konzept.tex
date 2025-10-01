@@ -1,0 +1,10 @@
+\section{Konzept}\label{sec:konzept}
+Ziel dieser Arbeit ist die Entwicklung eines Systems zur Echtzeit-Bilderkennung und -Steuerung eines TurtleBot3-Roboters unter Verwendung eines selbst trainierten YOLO-Modells. 
+Dabei soll ein praxisnaher Einblick in das Training und den Einsatz künstlicher Intelligenz im Bereich der mobilen Robotik gewonnen werden. 
+Das trainierte Modell soll aufgrund der erhöhten Rechenanforderungen auf einem separaten Rechner mit GPU ausgeführt werden, während der Roboter über ROS 2 Kamera- und Steuerdaten mit dem Rechner austauscht. 
+Zur Demonstration der Funktionalität sollen Richtungspfeile als Erkennungsobjekte verwendet werden. 
+Erkennt das System einen Pfeil, soll der Roboter entsprechend abbiegen.
+Dieses Szenario ermöglicht einen gezielten Einblick in die Objekterkennung und die Verwendung von ROS.
+\newPar
+Speziell zur Anwendung kommen soll das Bildverarbeitungsframework YOLO, das mit einer Vielzahl von vortrainierten Objektklassen bereits eine gute Basis zur Objekterkennung bietet.
+Dieses kann mittels Tools des Herstellers Ultralytics bzw. der Open\hyp{}Source\hyp{}Bibliothek PyTorch speziell nachtrainiert werden, um eigene benutzerdefinierte Objekte erkennen zu können.

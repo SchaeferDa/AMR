@@ -1,0 +1,14 @@
+\section*{Abstract}
+In dieser Arbeit wurde ein System zur Echtzeit-Bilderkennung und autonomen Steuerung eines TurtleBot3-Roboters entwickelt. 
+Ziel war es, ein eigenes Objekterkennungsmodell auf Basis des Bildverarbeitungsframeworks YOLO zu trainieren und dieses so in das Robot Operating System~2 (ROS~2) zu integrieren, 
+dass der Roboter im konkreten Beispiel Richtungspfeile erkennt und entsprechend reagiert. 
+Das Projekt vereint zentrale Aspekte aus den Bereichen Robotik, Bildverarbeitung und künstlicher Intelligenz und wurde vollständig praktisch umgesetzt.
+\newPar
+Ein wesentlicher Bestandteil war die Erstellung eines Trainingsdatensatzes, der hunderte Bilder mit verschiedenen Pfeilformen und -farben enthielt. 
+Nach dem Labeling der Daten wurde das YOLO-Modell mithilfe von PyTorch auf einem leistungsfähigen Rechner mit GPU trainiert. 
+Das daraus entstandene Modell konnte anschließend in das Robotersystem eingebunden werden. 
+Über eine Kamera, die am TurtleBot3 montiert wurde, werden kontinuierlich Bilder aufgenommen, die das Modell auswertet. 
+Anhand der erkannten Objekte entscheidet das System, ob der Roboter nach links, rechts oder geradeaus fahren soll.
+\newPar
+Neben der technischen Umsetzung lagen die Herausforderungen vor allem in der Einarbeitung in ROS~2, der Einbindung der Kamera sowie der Synchronisation zwischen Trainingsumgebung und Roboter. 
+Trotz dieser Hürden konnte ein stabiles und funktionales Gesamtsystem realisiert werden, das zeigt, wie moderne KI-Verfahren sinnvoll mit mobiler Robotik kombiniert werden können.

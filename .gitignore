@@ -1,0 +1,15 @@
+build/**
+!build/*.pdf
+src/main.aux
+src/main.bbl
+src/main.blg
+src/main.fdb_latexmk
+src/main.lof
+src/main.log
+src/main.lot
+src/main.fls
+src/main.out
+src/main.tdo
+src/main.toc
+src/main.synctex.gz
+src/0_titelseite.aux

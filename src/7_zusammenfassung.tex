@@ -1,0 +1,31 @@
+\section{Zusammenfassung}
+Im Rahmen dieses Projekts wurde ein System zur Echtzeit-Bilderkennung und autonomen Steuerung eines mobilen Roboters entwickelt. 
+Dabei kamen sowohl moderne Deep-Learning-Technologien als auch bewährte Frameworks aus der Robotik zum Einsatz. 
+In diesem Kapitel werden abschließend aufgetretene Herausforderungen beleuchtet sowie Ansätze für mögliche Verbesserungen aufgezeigt.
+\subsection{Herausforderungen während des Projekts}
+Im Verlauf des Projekts traten verschiedene Herausforderungen auf, die sowohl das Modelltraining als auch die Integration der Lösung betrafen. 
+Zu Beginn stand eine zu geringe Anzahl an Trainingsbildern zur Verfügung, was sich deutlich in der schlechten Erkennungsleistung der ersten Traingsversuche zeigte. 
+Erst durch die Erweiterung des Datensatzes mit deutlich mehr Bildern konnte eine brauchbare Modellqualität erreicht werden. 
+\newPar
+Zusätzlich gestaltete sich die Integration des Raspberry Pi und der VM als aufwendig, da eine funktionierende Netzwerk- und VM-Konfiguration erforderlich war, 
+um eine stabile Kommunikation zwischen dem Raspberry und der Virtuellen Maschine sicherzustellen. 
+\newPar
+Softwareseitig gab es die Herausforderung, auf dem eingesetzten Ubuntu-System des Raspberry Pi einige notwendige Pakete und Treiber zu installieren.
+So war beispielsweise nur die Kamera-Version 1.3 verwendbar, da neuere Modelle oder die Nutzung mit Tools wie GStreamer mangels Treiberunterstützung nicht funktionierten. 
+
+\subsection{Ansätze für die Verbesserung}
+Im Verlauf der Arbeit ergaben sich auch einige wichtige Erkenntnisse und mögliche Verbesserungsansätze für zukünftige Projekte. 
+Eine davon ist der Einsatz von sogenannten Oriented Bounding Boxes, also gedrehten Boxes, die neben Position und Größe auch die Orientierung eines Objekts erfassen. 
+Gerade bei der Erkennung von Pfeilen kann dadurch nicht nur das Objekt selbst, sondern auch dessen Richtung eindeutig erkannt werden.
+\cite{yolo_obb}
+Das würde Fehler vermeiden, bei denen ähnlich aussehende, aber entgegengesetzt ausgerichtete Pfeile verwechselt wurden. 
+Allerdings ist dabei das Labelling deutlich aufwendiger, da neben den üblichen Informationen auch der Rotationswinkel manuell erfasst werden muss. 
+\newPar
+Eine weitere Erkenntnis betrifft den Einsatz von sogenannten Background Images, also Bildern ohne relevante Objekte. 
+Solche Bilder helfen dem Modell dabei zu lehren, dass nicht in jedem Bild zwingend ein Pfeil vorhanden ist. 
+Dadurch lassen sich False Positives reduzieren, also Fehler, bei denen das Modell fälschlicherweise ein Objekt erkennt
+\newPar
+Beide Ansätze tragen dazu bei, die Genauigkeit und Zuverlässigkeit des Modells in realen Anwendungen weiter zu verbessern.
+
+\subsection{Repository}
+Das GIT-Repository dieses Projektes ist auf GitHub unter folgendem Link zu finden: https://github.com/SchaeferDa/AMR.

@@ -1,0 +1,46 @@
+{
+	"folders": [
+		{
+			"path": "./"
+		}
+	],
+	"settings": {
+		"latex-workshop.latex.recipes": [
+			{
+				"name": "pdflatex -> bibtex -> pdflatex",
+				"tools": [
+					"pdflatex",
+					"bibtex",
+					"pdflatex"
+				]
+			}
+		],
+		"latex-workshop.latex.tools": [
+			{
+				"name": "pdflatex",
+				"command": "pdflatex",
+				"args": [
+					"-synctex=1",
+					"-interaction=nonstopmode",
+					"-file-line-error",
+					"--shell-escape",
+					"-output-directory=../build",
+					"%DOC%"
+				],
+				"env": {}
+			},
+			{
+				"name": "bibtex",
+				"command": "bibtex",
+				"args": [
+					"%DIR%/../build/%DOCFILE%"
+				],
+				"env": {}
+			}
+		],
+		"latex-workshop.latex.autoBuild.run": "never",
+		"cSpell.language": "en,de-DE",
+		"cSpell.words": [
+		]
+	}
+}
